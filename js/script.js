@@ -8,11 +8,31 @@ document.addEventListener("DOMContentLoaded", function () {
     event.preventDefault();
     addTodo();
   });
+
+  if (isStorageExist()) {
+    loadDataFromStorage();
+  }
 });
 
-// function add
+function loadDataFromStorage() {
+  const serializedData = localStorage.getItem(STORAGE_KEY);
+  let data = JSON.parse(serializedData);
+
+  if (data !== null) {
+    for (const todo of data) {
+      todos.push(todo);
+    }
+  }
+  document.dispatchEvent(new Event(RENDER_EVENT));
+}
+
 const todos = [];
 const RENDER_EVENT = "render-todo";
+const SAVED_EVENT = "saved-todo";
+const REMOVE_EVENT = "remove-todo";
+const CHECK_EVENT = "check-todo";
+const UNDO_EVENT = "undo-todo";
+const STORAGE_KEY = "TODO_APPS";
 
 function addTodo() {
   const textTodo = document.getElementById("title").value;
@@ -28,6 +48,7 @@ function addTodo() {
   todos.push(todoObject);
 
   document.dispatchEvent(new Event(RENDER_EVENT));
+  saveData();
 }
 
 function generateId() {
@@ -99,6 +120,7 @@ function makeTodo(todoObject) {
     });
 
     container.append(checkButton);
+    saveData();
   }
 
   return container;
@@ -111,6 +133,7 @@ function addTaskToCompleted(todoId) {
 
   todoTarget.isCompleted = true;
   document.dispatchEvent(new Event(RENDER_EVENT));
+  checkData();
 }
 
 function findTodo(todoId) {
@@ -129,6 +152,7 @@ function removeTaskFromCompleted(todoId) {
 
   todos.splice(todoTarget, 1);
   document.dispatchEvent(new Event(RENDER_EVENT));
+  removeData();
 }
 
 function undoTaskFromCompleted(todoId) {
@@ -138,6 +162,7 @@ function undoTaskFromCompleted(todoId) {
 
   todoTarget.isCompleted = false;
   document.dispatchEvent(new Event(RENDER_EVENT));
+  undoData();
 }
 
 function findTodoIndex(todoId) {
@@ -149,3 +174,79 @@ function findTodoIndex(todoId) {
 
   return -1;
 }
+
+function saveData() {
+  if (isStorageExist()) {
+    const parsed = JSON.stringify(todos);
+    localStorage.setItem(STORAGE_KEY, parsed);
+    document.dispatchEvent(new Event(SAVED_EVENT));
+  }
+}
+
+function checkData() {
+  if (isStorageExist()) {
+    const parsed = JSON.stringify(todos);
+    localStorage.setItem(STORAGE_KEY, parsed);
+    document.dispatchEvent(new Event(CHECK_EVENT));
+  }
+}
+
+function undoData() {
+  if (isStorageExist()) {
+    const parsed = JSON.stringify(todos);
+    localStorage.setItem(STORAGE_KEY, parsed);
+    document.dispatchEvent(new Event(UNDO_EVENT));
+  }
+}
+
+function removeData() {
+  if (isStorageExist()) {
+    const parsed = JSON.stringify(todos);
+    localStorage.setItem(STORAGE_KEY, parsed);
+    document.dispatchEvent(new Event(REMOVE_EVENT));
+  }
+}
+
+function isStorageExist() /* boolean */ {
+  if (typeof Storage === undefined) {
+    alert("Browser kamu tidak mendukung local storage");
+    return false;
+  }
+  return true;
+}
+
+document.addEventListener(SAVED_EVENT, function () {
+  Swal.fire({
+    title: "Data Saved",
+    text: "Your changes have been saved successfully!",
+    icon: "success",
+    confirmButtonText: "OK",
+  });
+});
+
+document.addEventListener(CHECK_EVENT, function () {
+  Swal.fire({
+    title: "Data Checked",
+    text: "Your changes have been checked successfully!",
+    icon: "info",
+    confirmButtonText: "OK",
+  });
+});
+
+document.addEventListener(UNDO_EVENT, function () {
+  Swal.fire({
+    title: "Data Undo Checked",
+    text: "Your changes have been undo checked successfully!",
+    icon: "info",
+    confirmButtonText: "OK",
+  });
+});
+
+document.addEventListener(REMOVE_EVENT, function () {
+  Swal.fire({
+    title: "Data Removed",
+    text: "Your changes have been removed successfully!",
+    icon: "info",
+    confirmButtonText: "OK",
+  });
+});
